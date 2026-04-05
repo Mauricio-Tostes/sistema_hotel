@@ -211,21 +211,30 @@ class Funcs():
 
         for n in self.listaCli.selection():
             valores = self.listaCli.item(n, 'values')
-            
-            # 1. Código (Índice 0)
+
+            # Código
             self.codigo_entry.configure(state="normal")
             self.codigo_entry.insert(END, valores[0])
             self.codigo_entry.configure(state="disabled")
 
-            # 2. Dados Pessoais (Índices 1 a 5)
+            # CPF e Nome
             self.CPF_entry.insert(END, valores[1])
             self.nome_entry.insert(END, valores[2])
-            self.data_nascimento_entry.insert(END, valores[3])
+
+            # Data de Nascimento (desativa validação antes de inserir)
+            self.data_nascimento_entry.configure(validate="none")
+            self.data_nascimento_entry.insert(0, valores[3])
+            self.data_nascimento_entry.configure(validate="key")
+
+            # Sexo
             self.sexo_entry.set(valores[4])
-            self.telefone_entry.insert(END, valores[5])
-            
-            # 3. Endereço (Índices 6 a 12)
-            # Precisamos de abrir o estado para inserir dados nos campos que ficam readonly
+
+            # Telefone (desativa validação antes de inserir)
+            self.telefone_entry.configure(validate="none")
+            self.telefone_entry.insert(0, valores[5])
+            self.telefone_entry.configure(validate="key")
+
+            # Endereço
             campos_endereco = [
                 (self.cep_entry, valores[6]),
                 (self.rua_entry, valores[7]),
@@ -235,17 +244,14 @@ class Funcs():
                 (self.cidade_entry, valores[11]),
                 (self.estado_entry, valores[12])
             ]
-
             for campo, valor in campos_endereco:
                 campo.configure(state="normal")
                 campo.insert(END, valor)
-                # Se for Rua, Bairro, Cidade ou UF, volta a travar após inserir
                 if campo in [self.rua_entry, self.bairro_entry, self.cidade_entry, self.estado_entry]:
                     if valor.strip() != "":
                         campo.configure(state="readonly")
 
-            # 4. Observações (Busca direta no Banco)
-            # Como a Obs não está na tabela, usamos o Código para ler do BD
+            # Observações
             self.conecta_bd()
             cod_id = valores[0]
             obs_bd = self.cursor.execute("SELECT observacoes FROM clientes WHERE cod = ?", (cod_id,)).fetchone()
